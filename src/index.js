@@ -36,10 +36,11 @@ const addSubmitListener = (object3) => {
   const form1 = document.getElementById("edit-ramen");
   const button = document.getElementById("Delete");
 
+  //eventlistener for delete button
   button.addEventListener("click", () => {
     const currentDisplayedRamen1 = document.querySelector("h2.name");
 
-    const finder0 = () => {
+    const deleteFromObject = () => {
       for(let element of object3) {
         if (element["name"] === currentDisplayedRamen1.innerText) {
           object3.splice(object3.indexOf(element),1);
@@ -47,10 +48,9 @@ const addSubmitListener = (object3) => {
       }
     }
     }
-    finder0();
 
-    const finder1 = (x) => {
-      for (let element of x) {
+    const deleteFromDOM = (HTMLCollection) => {
+      for (let element of HTMLCollection) {
         if (element.id === currentDisplayedRamen1.innerText) {
           element.remove();
           return 1;
@@ -60,7 +60,8 @@ const addSubmitListener = (object3) => {
 
     const ramenCollection = document.querySelectorAll("img.imgOfFood");
 
-    finder1(ramenCollection);
+    deleteFromObject();
+    deleteFromDOM(ramenCollection);
 
     const imgDisplay3 = document.querySelector("img.detail-image");
     const nameDisplay3 = document.querySelector("h2.name");
@@ -74,9 +75,15 @@ const addSubmitListener = (object3) => {
     ratingDisplay3.innerText = object3[0]["rating"];
     commentDisplay3.innerText = object3[0]["comment"];
 
+    const configObj = {
+      method:"DELETE",
+      headers: {
+        "Content-type": "application/json"
+      }
+    }
   })
 
-  //handles "submit" events
+  //handles submission of new ramen
   form0.addEventListener("submit", (event) => {
 
     //prevents default refreshing of DOM on event "submit"
@@ -136,12 +143,33 @@ const addSubmitListener = (object3) => {
 
     object3.push(myObj);
 
+    const configObj = {
+      method:"POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(myObj),
+    }
+
+    //POST to server
+    fetch("http://localhost:3000/ramens",configObj)
+    .then((response) => response.json())
+    .then((object) => {
+      console.log(object);
+    })
+    .catch((error) => {
+      console.log(error);
+      alert("POST Error : Failed to POST");
+    })
   })
 
+  //handles submission of updates to ramen
   form1.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const currentDisplayedRamen0 = document.querySelector("h2.name");
+
     const updatedRating = form1.querySelector("input#new-rating").value;
     const updatedComment = form1.querySelector("textarea#new-comment").value;
 
