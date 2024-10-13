@@ -11,24 +11,16 @@ const handleClick = (ramen, object2) => {
   const ratingDisplay1 = document.querySelector("span#rating-display");
   const commentDisplay1 = document.querySelector("p#comment-display");
 
-  let answer0, answer1, answer2, answer3, answer4;
   object2.forEach(element => {
-    const elemImg1 = (element["image"]).slice(1); //whittles down the differing urls for easier comparison
-    const ramenSrc1 = (ramen.src).slice(21); //whittles down the differing urls for easier comparison
-    if (elemImg1 === ramenSrc1) {
-      answer0 = element["name"];
-      answer1 = element["restaurant"];
-      answer2 = element["image"];
-      answer3 = element["rating"];
-      answer4 = element["comment"];
+    if (element["name"] === ramen.id) {
+      nameDisplay1.innerText = element["name"];
+      restaurantDisplay1.innerText = element["restaurant"];
+      imgDisplay1.src = element["image"];
+      ratingDisplay1.innerText = element["rating"];
+      commentDisplay1.innerText = element["comment"];
       return; // exits forEach at first match
     }
   })
-  nameDisplay1.innerText = answer0;
-  restaurantDisplay1.innerText = answer1;
-  imgDisplay1.src = answer2;
-  ratingDisplay1.innerText = answer3;
-  commentDisplay1.innerText = answer4;
 };
 
 const addSubmitListener = (object3) => {
@@ -38,49 +30,65 @@ const addSubmitListener = (object3) => {
 
   //eventlistener for delete button
   button.addEventListener("click", () => {
-    const currentDisplayedRamen1 = document.querySelector("h2.name");
 
-    const deleteFromObject = () => {
-      for(let element of object3) {
-        if (element["name"] === currentDisplayedRamen1.innerText) {
-          object3.splice(object3.indexOf(element),1);
+    const deleteFromObject = (object, currentDisplayedRamen) => {
+      for (let element of object) {
+        if (element["name"] === currentDisplayedRamen.innerText) {
+          object.splice(object.indexOf(element), 1);
           return 1;
+        }
       }
     }
-    }
-
-    const deleteFromDOM = (HTMLCollection) => {
+    const deleteFromDOM = (HTMLCollection, currentDisplayedRamen) => {
       for (let element of HTMLCollection) {
-        if (element.id === currentDisplayedRamen1.innerText) {
+        if (element.id === currentDisplayedRamen.innerText) {
           element.remove();
           return 1;
         }
       }
     }
+    const deleteFromServer = () => {
+      fetch("http://localhost:3000/ramens")
+        .then(resp => resp.json())
+        .then(object4 => {
+          const currentlyDisplayedRamen = document.querySelector("h2.name");
+          const ramenCollection = document.querySelectorAll("img.imgOfFood");
+          for (let element of object4) {
+            if (element["name"] === currentlyDisplayedRamen.innerText) {
+              fetch(`http://localhost:3000/ramens/${element["id"]}`, {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json"
+                }
+              })
+                .then(resp => resp.json())
+                .then((object5) => {
 
-    const ramenCollection = document.querySelectorAll("img.imgOfFood");
+                  deleteFromObject(object4, currentlyDisplayedRamen);
+                  deleteFromDOM(ramenCollection, currentlyDisplayedRamen);
 
-    deleteFromObject();
-    deleteFromDOM(ramenCollection);
+                  const imgDisplay3 = document.querySelector("img.detail-image");
+                  const nameDisplay3 = document.querySelector("h2.name");
+                  const restaurantDisplay3 = document.querySelector("h3.restaurant");
+                  const ratingDisplay3 = document.querySelector("span#rating-display");
+                  const commentDisplay3 = document.querySelector("p#comment-display");
 
-    const imgDisplay3 = document.querySelector("img.detail-image");
-    const nameDisplay3 = document.querySelector("h2.name");
-    const restaurantDisplay3 = document.querySelector("h3.restaurant");
-    const ratingDisplay3 = document.querySelector("span#rating-display");
-    const commentDisplay3 = document.querySelector("p#comment-display");
-
-    imgDisplay3.src = object3[0]["image"];
-    nameDisplay3.innerText = object3[0]["name"];
-    restaurantDisplay3.innerText = object3[0]["restaurant"];
-    ratingDisplay3.innerText = object3[0]["rating"];
-    commentDisplay3.innerText = object3[0]["comment"];
-
-    const configObj = {
-      method:"DELETE",
-      headers: {
-        "Content-type": "application/json"
-      }
+                  imgDisplay3.src = object4[0]["image"];
+                  nameDisplay3.innerText = object4[0]["name"];
+                  restaurantDisplay3.innerText = object4[0]["restaurant"];
+                  ratingDisplay3.innerText = object4[0]["rating"];
+                  commentDisplay3.innerText = object4[0]["comment"];
+                })
+                .catch(error => {
+                  alert(error.message)
+                  console.log(error.message)
+                })
+            }
+          }
+        })
     }
+
+    deleteFromServer();
   })
 
   //handles submission of new ramen
@@ -144,7 +152,7 @@ const addSubmitListener = (object3) => {
     object3.push(myObj);
 
     const configObj = {
-      method:"POST",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -153,15 +161,14 @@ const addSubmitListener = (object3) => {
     }
 
     //POST to server
-    fetch("http://localhost:3000/ramens",configObj)
-    .then((response) => response.json())
-    .then((object) => {
-      console.log(object);
-    })
-    .catch((error) => {
-      console.log(error);
-      alert("POST Error : Failed to POST");
-    })
+    fetch("http://localhost:3000/ramens", configObj)
+      .then((response) => response.json())
+      .then((object) => {
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("POST Error : Failed to POST");
+      })
   })
 
   //handles submission of updates to ramen
@@ -224,10 +231,10 @@ const displayRamens = (object1) => {
   });
 
   //gets all images with class of imgOfFood
-  const containerList = document.getElementsByClassName("imgOfFood");
+  const ramenList = document.getElementsByClassName("imgOfFood");
 
   //iterates through pictureList giving every element an eventListener
-  for (let element of containerList) {
+  for (let element of ramenList) {
     element.addEventListener("click", () => {
 
       //calls handleClick with element clicked as argument
